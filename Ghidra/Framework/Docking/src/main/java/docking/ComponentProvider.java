@@ -175,7 +175,7 @@ public abstract class ComponentProvider implements HelpDescriptor, ActionContext
 	public abstract JComponent getComponent();
 
 	/**
-	 * A method that allows children to set the <tt>instanceID</tt> to a desired value (useful for
+	 * A method that allows children to set the <code>instanceID</code> to a desired value (useful for
 	 * restoring saved IDs).
 	 * <p>
 	 * Note: this can be called only once during the lifetime of the calling instance; otherwise, an 
@@ -255,7 +255,7 @@ public abstract class ComponentProvider implements HelpDescriptor, ActionContext
 	 * Adds the given action to the system and associates it with this provider.
 	 * @param action The action to add.
 	 */
-	protected void addLocalAction(DockingActionIf action) {
+	public void addLocalAction(DockingActionIf action) {
 		if (actionSet.contains(action)) {
 			return;
 		}
@@ -532,7 +532,7 @@ public abstract class ComponentProvider implements HelpDescriptor, ActionContext
 	 * text returned from {@link #getTitle()} will be used by default.
 	 * 
 	 * @return the optionally set text to display in the tab for a component provider.
-	 * @set {@link #setTabText(String)}
+	 * @see #setTabText(String)
 	 */
 
 	public String getTabText() {

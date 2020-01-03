@@ -38,7 +38,7 @@ import utilities.util.reflection.ReflectionUtilities;
  * made visible through the UI.
  * <p>
  * This model will also discover other system columns that understand how to render
- * <tt>ROW_TYPE</tt> data directly.  Also, if you create a {@link TableRowMapper mapper}(s) for
+ * <code>ROW_TYPE</code> data directly.  Also, if you create a {@link TableRowMapper mapper}(s) for
  * your row type, then this model will load columns for each type for which a mapper was created,
  * all as optional, hidden columns.
  * <p>
@@ -178,11 +178,11 @@ public abstract class GDynamicColumnTableModel<ROW_TYPE, DATA_SOURCE>
 		Comparator<Object> columnComparator = createSortComparatorForColumn(columnIndex);
 		if (columnComparator != null) {
 			// the given column has its own comparator; wrap and us that
-			return new RowToColumnComparator<>(this, columnIndex, columnComparator);
+			return new RowBasedColumnComparator<>(this, columnIndex, columnComparator);
 		}
 
-		return new RowToColumnComparator<>(this, columnIndex, new DefaultColumnComparator(),
-			new ColumnRenderedValueBackupRowComparator<>(this, columnIndex));
+		return new RowBasedColumnComparator<>(this, columnIndex, new DefaultColumnComparator(),
+			new ColumnRenderedValueBackupComparator<>(this, columnIndex));
 	}
 
 	/**
@@ -241,7 +241,7 @@ public abstract class GDynamicColumnTableModel<ROW_TYPE, DATA_SOURCE>
 	 * implementations to add custom column objects, rather than relying on generic, discovered
 	 * DynamicTableColumn implementations.
 	 * 
-	 * <p><b>Note: this method assumes that the columns have already been sorted
+	 * <p><b>Note: this method assumes that the columns have already been sorted</b>
 	 * @param column The field to add
 	 */
 	protected void addTableColumn(DynamicTableColumn<ROW_TYPE, ?, ?> column) {
@@ -269,7 +269,7 @@ public abstract class GDynamicColumnTableModel<ROW_TYPE, DATA_SOURCE>
 	 * This method is intended for implementations to add custom column objects, rather than
 	 * relying on generic, discovered DynamicTableColumn implementations.
 	 * <p>
-	 * <b>Note: this method assumes that the columns have already been sorted.
+	 * <b>Note: this method assumes that the columns have already been sorted.</b>
 	 * @param column The field to add.
 	 * @param index The index at which to add the field.  If the index value is invalid (negative
 	 *        or greater than the number of columns), then the column will be added to the
@@ -441,7 +441,6 @@ public abstract class GDynamicColumnTableModel<ROW_TYPE, DATA_SOURCE>
 		}
 
 		return column.getValue(t, columnSettings.get(column), dataSource, serviceProvider);
-
 	}
 
 	/**

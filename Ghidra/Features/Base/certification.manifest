@@ -35,6 +35,7 @@ data/parserprofiles/objc_mac_carbon.prf||GHIDRA||reviewed||END|
 data/parserprofiles/vs12Local.prf||GHIDRA||||END|
 data/pcodetest/EmuTesting.gdt||GHIDRA||||END|
 data/stringngrams/StringModel.sng||GHIDRA||reviewed||END|
+data/symbols/README.txt||GHIDRA||||END|
 data/symbols/win32/kernel32.hints||GHIDRA||||END|
 data/symbols/win32/mfc100.exports||GHIDRA||||END|
 data/symbols/win32/mfc100u.exports||GHIDRA||||END|
@@ -400,7 +401,7 @@ src/main/help/help/topics/FunctionTagPlugin/images/DeleteWarning.png||GHIDRA||||
 src/main/help/help/topics/FunctionTagPlugin/images/EditNotAllowedWarning.png||GHIDRA||||END|
 src/main/help/help/topics/FunctionTagPlugin/images/EditTag.png||GHIDRA||||END|
 src/main/help/help/topics/FunctionTagPlugin/images/FilterField.png||GHIDRA||||END|
-src/main/help/help/topics/FunctionTagPlugin/images/FunctionTagPlugin.png||GHIDRA||||END|
+src/main/help/help/topics/FunctionTagPlugin/images/FullWindow.png||GHIDRA||||END|
 src/main/help/help/topics/FunctionTagPlugin/images/InputField.png||GHIDRA||||END|
 src/main/help/help/topics/FunctionWindowPlugin/function_window.htm||GHIDRA||||END|
 src/main/help/help/topics/FunctionWindowPlugin/images/FunctionWindow.png||GHIDRA||||END|
@@ -843,7 +844,6 @@ src/main/java/ghidra/app/util/bin/format/package.html||GHIDRA||||END|
 src/main/java/ghidra/app/util/bin/format/pe/package.html||GHIDRA||||END|
 src/main/java/ghidra/app/util/bin/format/pe/resource/package.html||GHIDRA||||END|
 src/main/java/ghidra/app/util/bin/package.html||GHIDRA||||END|
-src/main/java/ghidra/app/util/cparser/build.xml||GHIDRA||||END|
 src/main/java/ghidra/app/util/exporter/package.html||GHIDRA||||END|
 src/main/java/ghidra/app/util/importer/package.html||GHIDRA||||END|
 src/main/java/ghidra/app/util/opinion/package.html||GHIDRA||||END|
@@ -1049,7 +1049,6 @@ src/main/resources/images/functions.gif||GHIDRA||||END|
 src/main/resources/images/go-down.tango.16.png||Tango Icons - Public Domain|||tango icon set|END|
 src/main/resources/images/go-home.png||Tango Icons - Public Domain|||Tango|END|
 src/main/resources/images/go-up.tango.16.png||Tango Icons - Public Domain|||tango icon set|END|
-src/main/resources/images/help-browser.png||Tango Icons - Public Domain|||tango icon set|END|
 src/main/resources/images/help-hint.png||Oxygen Icons - LGPL 3.0|||renamed from help-hing.png|END|
 src/main/resources/images/hexData.png||GHIDRA||||END|
 src/main/resources/images/house.png||FAMFAMFAM Icons - CC 2.5|||famfamfam silk icon set|END|
@@ -1186,3 +1185,4 @@ src/test.slow/resources/filterTestDirList.txt||GHIDRA||||END|
 src/test.slow/resources/ghidra/app/plugin/core/datamgr/TestDataType.txt||GHIDRA||||END|
 src/test.slow/resources/ghidra/app/script/GhidraScriptAsk.properties||GHIDRA||||END|
 src/test/resources/defaultTools/TestCodeBrowser.tool||GHIDRA||||END|
+src/test/resources/ghidra/app/util/opinion/test.ord||GHIDRA||||END|

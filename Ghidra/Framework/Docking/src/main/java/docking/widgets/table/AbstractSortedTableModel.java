@@ -21,7 +21,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableModel;
 
 import docking.widgets.table.sort.DefaultColumnComparator;
-import docking.widgets.table.sort.RowToColumnComparator;
+import docking.widgets.table.sort.RowBasedColumnComparator;
 import ghidra.util.Swing;
 import ghidra.util.datastruct.WeakDataStructureFactory;
 import ghidra.util.datastruct.WeakSet;
@@ -92,8 +92,8 @@ public abstract class AbstractSortedTableModel<T> extends AbstractGTableModel<T>
 	}
 
 	/**
-	 * Returns the index of the given row object in this model; -1 if the model does not contain
-	 * the given object.  
+	 * Returns the index of the given row object in this model; a negative value if the model 
+	 * does not contain the given object.  
 	 * 
 	 * <p>Warning: if the this model has no sort applied, then performance will be O(n).  If 
 	 * sorted, then performance is O(log n).  You can call {@link #isSorted()} to know when 
@@ -132,6 +132,9 @@ public abstract class AbstractSortedTableModel<T> extends AbstractGTableModel<T>
 
 	@Override
 	public int getPrimarySortColumnIndex() {
+		if (sortState.isUnsorted()) {
+			return -1;
+		}
 		return sortState.iterator().next().getColumnModelIndex();
 	}
 
@@ -267,7 +270,7 @@ public abstract class AbstractSortedTableModel<T> extends AbstractGTableModel<T>
 	/**
 	 * A default sort method that uses the {@link Collections#sort(List, Comparator)} method for
 	 * sorting.  Implementors with reasonably sized data sets can rely on this method.  For data
-	 * sets that can become large, the <tt>ThreadedTableModel</tt> is the recommended base class, 
+	 * sets that can become large, the <code>ThreadedTableModel</code> is the recommended base class, 
 	 * as it handles loading/sorting/filtering in a threaded way.
 	 * 
 	 * @param data The data to be sorted
@@ -300,7 +303,7 @@ public abstract class AbstractSortedTableModel<T> extends AbstractGTableModel<T>
 
 	/**
 	 * Fires an event to let the listeners (like JTable) know that things have been changed. 
-	 * This method exists so that subclasses have a way to call the various <tt>tableChanged()</tt>
+	 * This method exists so that subclasses have a way to call the various <code>tableChanged()</code>
 	 * methods without triggering this class's overridden version.
 	 * @param dataChanged True signals that the actual data has changed; false signals that the
 	 *        data is the same, with exception that attributes of that data may be different.
@@ -327,8 +330,8 @@ public abstract class AbstractSortedTableModel<T> extends AbstractGTableModel<T>
 	 * @return the comparator 
 	 */
 	protected Comparator<T> createSortComparator(int columnIndex) {
-		return new RowToColumnComparator<>(this, columnIndex, new DefaultColumnComparator(),
-			new StringBasedBackupRowToColumnComparator(columnIndex));
+		return new RowBasedColumnComparator<>(this, columnIndex, new DefaultColumnComparator(),
+			new StringBasedBackupRowToColumnComparator());
 	}
 
 	private Comparator<T> createLastResortComparator(ComparatorLink parentChain) {
@@ -467,22 +470,16 @@ public abstract class AbstractSortedTableModel<T> extends AbstractGTableModel<T>
 		}
 	}
 
-	private class StringBasedBackupRowToColumnComparator implements Comparator<T> {
-
-		private int sortColumn;
-
-		StringBasedBackupRowToColumnComparator(int sortColumn) {
-			this.sortColumn = sortColumn;
-		}
+	private class StringBasedBackupRowToColumnComparator implements Comparator<Object> {
 
 		@Override
-		public int compare(T t1, T t2) {
-			if (t1 == t2) {
+		public int compare(Object c1, Object c2) {
+			if (c1 == c2) {
 				return 0;
 			}
 
-			String s1 = getColumStringValue(t1);
-			String s2 = getColumStringValue(t2);
+			String s1 = getColumStringValue(c1);
+			String s2 = getColumStringValue(c2);
 
 			if (s1 == null || s2 == null) {
 				return TableComparators.compareWithNullValues(s1, s2);
@@ -491,11 +488,10 @@ public abstract class AbstractSortedTableModel<T> extends AbstractGTableModel<T>
 			return s1.compareToIgnoreCase(s2);
 		}
 
-		private String getColumStringValue(T t) {
+		private String getColumStringValue(Object columnValue) {
 			// just use the toString(), which may or may not produce a good value (this will
 			// catch the cases where the column value is itself a string)
-			Object o = getColumnValueForRow(t, sortColumn);
-			return o == null ? null : o.toString();
+			return columnValue == null ? null : columnValue.toString();
 		}
 	}
 }

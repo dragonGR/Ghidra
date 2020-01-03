@@ -74,6 +74,7 @@ public class LocationReferencesPlugin extends Plugin
 	@Override
 	protected void init() {
 		initOptions();
+		LocationReferencesHighlighter.registerHighlighterOptions(this);
 	}
 
 	private void initOptions() {
@@ -102,7 +103,7 @@ public class LocationReferencesPlugin extends Plugin
 		//               providers are created, as they would only appear in the options at 
 		//               that point.
 		//
-		DeleteTableRowAction.registerDummy(tool);
+		DeleteTableRowAction.registerDummy(tool, getName());
 	}
 
 	void displayProvider(ListingActionContext context) {

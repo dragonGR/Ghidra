@@ -72,7 +72,7 @@ import utility.application.ApplicationLayout;
  * contained within the binary repository (e.g., ghidra.bin).
  * <p>
  * Within the pcodetests directory all files and folders which start with the prefix
- * <processor-designator>_pcodetest* will be processed.  All files contained within a matching
+ * {@literal <processor-designator>_pcodetest*} will be processed.  All files contained within a matching
  * subdirectory will be treated as related binaries and imported.  Any *.gzf file will be
  * imported but assumed to be pre-analyzed.  Binary files to be imported and analyzed must
  * utilize the *.out file extension.
@@ -2167,6 +2167,10 @@ public abstract class ProcessorEmulatorTestAdapter extends TestCase implements E
 	}
 
 	public final void test_BIOPS2() {
+		// stub
+	}
+
+	public final void test_BIOPS4() {
 		// stub
 	}
 

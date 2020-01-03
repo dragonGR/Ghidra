@@ -34,9 +34,11 @@ import docking.action.DockingActionIf;
 import docking.actions.KeyBindingUtils;
 import docking.options.editor.OptionsDialog;
 import docking.options.editor.OptionsPanel;
+import docking.tool.ToolConstants;
 import docking.tool.util.DockingToolConstants;
 import docking.widgets.filechooser.GhidraFileChooser;
 import docking.widgets.tree.GTree;
+import docking.widgets.tree.GTreeNode;
 import generic.io.NullWriter;
 import ghidra.app.plugin.core.codebrowser.CodeBrowserPlugin;
 import ghidra.app.plugin.core.data.DataPlugin;
@@ -321,6 +323,44 @@ public class KeyBindingUtilsTest extends AbstractGhidraHeadedIntegrationTest {
 		closeAllWindows();
 	}
 
+	@Test
+	public void testSharedKeyBindingGetsRestoredWhenToolIsRestarted() throws Exception {
+
+		setKeyBindingsUpDialog();
+
+		// this action is known to be a 'Shared' action
+		// Remove Items  (Shared)
+		String actionName = "Remove Items";
+		DockingActionIf action = getAction(tool, ToolConstants.SHARED_OWNER, actionName);
+		assertNotNull(action);
+		KeyStroke defaultBinding = action.getKeyBinding();
+		KeyStroke newBinding = KeyStroke.getKeyStroke(KeyEvent.VK_X, 0);
+		assertNotEquals(defaultBinding, newBinding);
+		setKeyBinding(action, "x", newBinding.getKeyCode());
+
+		KeyStroke appliedBinding = action.getKeyBinding();
+		assertEquals(newBinding, appliedBinding);
+
+		// reload the tool and make sure the values are those of the changes get restored
+		saveAndCloseTool();
+
+		reopenTool(tool);
+
+		KeyStroke restoredBinding = action.getKeyBinding();
+		assertEquals(newBinding, restoredBinding);
+
+		setKeyBindingsUpDialog(tool);
+		ToolOptions options = (ToolOptions) getInstanceField("options", panel);
+		KeyStroke optionBinding = options.getKeyStroke(action.getFullName(), null);
+		assertEquals(appliedBinding, optionBinding);
+
+		closeAllWindows();
+	}
+
+//==================================================================================================
+// Private Methods
+//==================================================================================================	
+
 	private void reopenTool(PluginTool tool2) {
 		runSwing(() -> {
 			ToolServices services = tool.getProject().getToolServices();
@@ -367,7 +407,7 @@ public class KeyBindingUtilsTest extends AbstractGhidraHeadedIntegrationTest {
 
 		// this is an instance of OptionsNode
 		GTree tree = (GTree) getInstanceField("gTree", optionsPanel);
-		Object keyBindingsNode = getGTreeNode(tree.getRootNode(), "Key Bindings");
+		Object keyBindingsNode = getGTreeNode(tree.getModelRoot(), "Key Bindings");
 		selectNode(tree, keyBindingsNode);
 
 		debug("ee");
@@ -407,17 +447,18 @@ public class KeyBindingUtilsTest extends AbstractGhidraHeadedIntegrationTest {
 		SwingUtilities.invokeAndWait(() -> tree.setSelectionPath(path));
 	}
 
-	private Object getGTreeNode(Object parent, String nodeName) throws Exception {
-		List<?> children = (List<?>) getInstanceField("allChildrenList", parent);
-		if (children == null) {
+	private GTreeNode getGTreeNode(GTreeNode parent, String nodeName) throws Exception {
+		if (!parent.isLoaded()) {
 			return null;
 		}
-		for (Object rootChild : children) {
+
+		List<GTreeNode> children = parent.getChildren();
+		for (GTreeNode rootChild : children) {
 			String name = (String) invokeInstanceMethod("getName", rootChild);
 			if (nodeName.equals(name)) {
 				return rootChild;
 			}
-			Object foundNode = getGTreeNode(rootChild, nodeName);
+			GTreeNode foundNode = getGTreeNode(rootChild, nodeName);
 			if (foundNode != null) {
 				return foundNode;
 			}
@@ -436,14 +477,19 @@ public class KeyBindingUtilsTest extends AbstractGhidraHeadedIntegrationTest {
 		}
 
 		assertNotNull("Unable to find an action for which to set a key binding", arbitraryAction);
+		setKeyBinding(arbitraryAction, keyText, keyCode);
+	}
 
-		selectRowForAction(arbitraryAction);
+	private void setKeyBinding(DockingActionIf action, String keyText, int keyCode)
+			throws Exception {
+
+		selectRowForAction(action);
 		triggerText(keyField, keyText);
 
 		assertEquals(keyText.toUpperCase(), keyField.getText());
 
 		runSwing(() -> panel.apply());
-		assertEquals(KeyStroke.getKeyStroke(keyCode, 0), arbitraryAction.getKeyBinding());
+		assertEquals(KeyStroke.getKeyStroke(keyCode, 0), action.getKeyBinding());
 	}
 
 	private void selectRowForAction(DockingActionIf action) throws Exception {
@@ -555,11 +601,11 @@ public class KeyBindingUtilsTest extends AbstractGhidraHeadedIntegrationTest {
 	private boolean compareOptionsWithKeyStrokeMap(Options oldOptions,
 			Map<String, KeyStroke> panelKeyStrokeMap) {
 		List<String> propertyNames = oldOptions.getOptionNames();
-		for (String element : propertyNames) {
+		for (String name : propertyNames) {
 
-			boolean match = panelKeyStrokeMap.containsKey(element);
-			KeyStroke optionsKs = oldOptions.getKeyStroke(element, null);
-			KeyStroke panelKs = panelKeyStrokeMap.get(element);
+			boolean match = panelKeyStrokeMap.containsKey(name);
+			KeyStroke optionsKs = oldOptions.getKeyStroke(name, null);
+			KeyStroke panelKs = panelKeyStrokeMap.get(name);
 
 			// if the value is null, then it would not have been placed into the options map 
 			// in the key bindings panel, so we only care about non-null values
@@ -580,8 +626,6 @@ public class KeyBindingUtilsTest extends AbstractGhidraHeadedIntegrationTest {
 	}
 
 	private void assertOptionsMatch(String message, ToolOptions options1, ToolOptions options2) {
-
-//		System.out.println("assertOptionsMatch()");
 
 		List<String> propertyNames = getOptionsNamesWithValues(options1);
 		List<String> otherPropertyNames = getOptionsNamesWithValues(options2);
@@ -607,8 +651,6 @@ public class KeyBindingUtilsTest extends AbstractGhidraHeadedIntegrationTest {
 
 	private void assertOptionsDontMatch(String message, ToolOptions options1,
 			ToolOptions options2) {
-
-//		System.out.println("assertOptionsDontMatch()");
 
 		List<String> propertyNames = getOptionsNamesWithValues(options1);
 		List<String> otherPropertyNames = getOptionsNamesWithValues(options2);

@@ -74,9 +74,9 @@ public abstract class ThreadedTableModel<ROW_OBJECT, DATA_SOURCE>
 	 * This variable can be in one of three states:
 	 * 	<ul>
 	 * 		<li>null - signals that there is no filter change taking place</li>
-	 * 		<li>An instance of <tt>NullTableFitler</tt> - the client has removed the current
+	 * 		<li>An instance of <code>NullTableFitler</code> - the client has removed the current
 	 *          filter by calling {@link #setTableFilter(TableFilter)} with a null value</li>
-	 * 		<li>An instance of a custom <tt>TableFitler</tt> - the client has changed the
+	 * 		<li>An instance of a custom <code>TableFitler</code> - the client has changed the
 	 *          filter to a non-null value by calling {@link #setTableFilter(TableFilter)}</li>
 	 *  </ul>
 	 */
@@ -214,7 +214,37 @@ public abstract class ThreadedTableModel<ROW_OBJECT, DATA_SOURCE>
 	protected abstract void doLoad(Accumulator<ROW_OBJECT> accumulator, TaskMonitor monitor)
 			throws CancelledException;
 
+	/**
+	 * This method will retrieve a column value for the given row object.  Further, the retrieved
+	 * value will be cached.   This is useful when sorting a table, as the same column value may
+	 * be requested multiple times.
+	 * 
+	 * <p><u>Performance Notes</u>
+	 * <ul>
+	 * 	<li>This method uses a {@link HashMap} to cache column values for a row object.   Further,
+	 *      upon a key collision, the map will perform O(logn) lookups <b>if the 
+	 *      key (the row object) is {@link Comparable}</b>.   If the key is not comparable, then
+	 *      the collision lookups will be linear.    So, make your row objects comparable
+	 *      for maximum speed <b>when your table size becomes large</b>  (for small tables there
+	 *      is no observable impact).
+	 *  <li>Even if your row objects are comparable, relying on this table model to convert your 
+	 *      row object into column values can be slow <b>for large tables</b>.  This is because
+	 *      the default column comparison framework for the tables will call this method 
+	 *      multiple times, resulting in many more method calls per column value lookup.  For 
+	 *      large data, the repeated method calls start to become noticeable.  For maximum 
+	 *      column sorting speed, use a comparator that works not on the column value, but on 
+	 *      the row value.  To do this, return a comparator from your model's 
+	 *      {@link #createSortComparator(int)} method, instead of from the column itself or 
+	 *      by relying on column item implementing {@link Comparable}.  This is possible any
+	 *      time that a row object already has a field that is used for a given column.
+	 * </ul>
+	 * 
+	 * @param rowObject the row object
+	 * @param columnIndex the column index for which to get a value
+	 * @return the column value
+	 */
 	Object getCachedColumnValueForRow(ROW_OBJECT rowObject, int columnIndex) {
+
 		Map<ROW_OBJECT, Map<Integer, Object>> cachedColumnValues = threadLocalColumnCache.get();
 
 		if (cachedColumnValues == null) {
@@ -239,7 +269,7 @@ public abstract class ThreadedTableModel<ROW_OBJECT, DATA_SOURCE>
 	}
 
 	void initializeCache() {
-		threadLocalColumnCache.set(new LRUMap<ROW_OBJECT, Map<Integer, Object>>(20000));
+		threadLocalColumnCache.set(new LRUMap<ROW_OBJECT, Map<Integer, Object>>(1000000));
 	}
 
 	void clearCache() {
@@ -376,7 +406,7 @@ public abstract class ThreadedTableModel<ROW_OBJECT, DATA_SOURCE>
 
 	/**
 	 * Override this to change how filtering is performed.  This implementation will do nothing
-	 * if a <tt>TableFilter</tt> has not been set via a call to {@link #setTableFilter(TableFilter)}.
+	 * if a <code>TableFilter</code> has not been set via a call to {@link #setTableFilter(TableFilter)}.
 	 * 
 	 *
 	 * @param data The list of data to be filtered.
@@ -433,7 +463,7 @@ public abstract class ThreadedTableModel<ROW_OBJECT, DATA_SOURCE>
 	}
 
 	/**
-	 * Sets the given <tt>TableFitler</tt> on this model.  This table filter will then be used
+	 * Sets the given <code>TableFitler</code> on this model.  This table filter will then be used
 	 * by this model in the default {@link #doFilter(List, TableSortingContext, TaskMonitor)}
 	 * method.
 	 * @param tableFitler The filter to use for table filtering.
@@ -745,10 +775,6 @@ public abstract class ThreadedTableModel<ROW_OBJECT, DATA_SOURCE>
 
 	long getMaxDelay() {
 		return maxUpdateDelayMillis;
-	}
-
-	protected Class<?> getSortedColumnClass(int columnIndex) {
-		return getColumnClass(columnIndex);
 	}
 
 	ThreadedTableModelUpdateMgr<ROW_OBJECT> getUpdateManager() {
